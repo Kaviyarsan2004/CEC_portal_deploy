@@ -1,0 +1,17 @@
+streamlit
+pandas
+plotly
+hydralit-components
+streamlit-plotly-events
+folium
+streamlit-folium
+geopandas
+shapely
+scipy
+matplotlib
+scikit-learn
+cvxpy
+dash
+leafmap
+psutil
+numpy==1.26.4
