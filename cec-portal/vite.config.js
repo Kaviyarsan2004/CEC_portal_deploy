@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: 'https://Kaviyarsan2004.github.io/CEC_portal_deploy/cec-portal',
+  base: '/CEC_portal_deploy/cec-portal',
 })
