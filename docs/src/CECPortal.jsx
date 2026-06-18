@@ -7,10 +7,10 @@ const FIGURE_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABMgAAAKYC
 "";
 
 // ============================================================================
-// CEC Portal (React) — 3‑Tile Edition (Pattern A)
+// CEC Portal (React) — Module Tile Edition (Pattern A)
 // Zero external UI deps in preview (no framer-motion, no lucide-react)
 // to avoid bundler/ESM syntax issues. Pure React + inline SVG icons.
-// Tiles: Explore Solutions · Explore Tradeoffs · Preference Blender
+// Tiles: Explore Solutions · Explore Tradeoffs · Preference Blender · Job Explore
 // Includes dev Config Tester (?dev=1). Deployment notes are stored in a
 // harmless string constant at the bottom (not rendered or executed).
 // ============================================================================
@@ -59,8 +59,8 @@ var DEFAULT_APPS = {
 
 function safeEnv(key) {
   try {
-    if (typeof process !== "undefined" && process && process.env) {
-      return process.env[key];
+    if (typeof import.meta !== "undefined" && import.meta && import.meta.env) {
+      return import.meta.env[key];
     }
   } catch (e) {}
   return undefined;
@@ -85,14 +85,83 @@ function fromQueryParams() {
 function buildAppConfig() {
   var fromWindow = (typeof window !== "undefined" ? window.CEC_APPS : undefined) || {};
   var fromEnv = {
-    explore: safeEnv("NEXT_PUBLIC_CEC_EXPLORE_URL"),
-    tradeoffs: safeEnv("NEXT_PUBLIC_CEC_TRADEOFFS_URL"),
-    blender: safeEnv("NEXT_PUBLIC_CEC_BLEND_URL"),
+    explore: safeEnv("VITE_CEC_EXPLORE_URL"),
+    tradeoffs: safeEnv("VITE_CEC_TRADEOFFS_URL"),
+    blender: safeEnv("VITE_CEC_BLENDER_URL"),
   };
   return Object.assign({}, DEFAULT_APPS, fromEnv, fromWindow, fromQueryParams());
 }
 
 var APPS = buildAppConfig();
+
+var ALL_APP_KEYS = ["explore", "tradeoffs", "blender"];
+var DEFAULT_MODE = "ccas";
+var MODES = [
+  {
+    key: "ccas",
+    label: "CCAs",
+    description: "Community choice aggregation planning and portfolio review.",
+    apps: ALL_APP_KEYS,
+  },
+  {
+    key: "state_authorities",
+    label: "State Authorities",
+    description: "Statewide policy, equity, and planning review.",
+    apps: ALL_APP_KEYS,
+  },
+  {
+    key: "research",
+    label: "Research Mode",
+    description: "Full technical exploration for research and model review.",
+    apps: ALL_APP_KEYS,
+  },
+  {
+    key: "idas",
+    label: "IDAs",
+    description: "Industrial development and site-readiness exploration.",
+    apps: ALL_APP_KEYS,
+  },
+  {
+    key: "county_towns",
+    label: "County/Towns",
+    description: "Local planning, zoning, resilience, and community benefit review.",
+    apps: ALL_APP_KEYS,
+  },
+  {
+    key: "developers",
+    label: "Developers",
+    description: "Project feasibility, siting, interconnection, and incentive review.",
+    apps: ALL_APP_KEYS,
+  },
+];
+
+function normalizeModeKey(mode) {
+  var normalized = String(mode || "").trim().toLowerCase().replace(/-/g, "_");
+  return MODES.some(function (m) { return m.key === normalized; }) ? normalized : DEFAULT_MODE;
+}
+
+function readInitialMode() {
+  try {
+    if (typeof window === "undefined") return DEFAULT_MODE;
+    var url = new URL(window.location.href);
+    var fromUrl = url.searchParams.get("mode");
+    if (fromUrl) return normalizeModeKey(fromUrl);
+    var fromStorage = window.localStorage && window.localStorage.getItem("cecMode");
+    return normalizeModeKey(fromStorage);
+  } catch (e) {
+    return DEFAULT_MODE;
+  }
+}
+
+function persistMode(mode) {
+  try {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("cecMode", mode);
+    var url = new URL(window.location.href);
+    url.searchParams.set("mode", mode);
+    window.history.replaceState({}, "", url.toString());
+  } catch (e) {}
+}
 
 // Hero image resolver: allow ?hero=<url> or window.CEC_HERO_IMG; fallback to inline SVG
 const HERO_FALLBACK = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
@@ -116,10 +185,16 @@ const HERO_IMG = (function(){
 })();
 
 // ---- UTILITIES --------------------------------------------------------------
-function withEmbedded(u) {
+function withAppParams(u, mode, embedded) {
   try {
-    var hasQuery = (u || "").indexOf("?") !== -1;
-    return u + (hasQuery ? "&" : "?") + "embedded=true";
+    var base = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    var url = new URL(u, base);
+    url.searchParams.set("mode", normalizeModeKey(mode));
+    if (embedded) url.searchParams.set("embedded", "true");
+    if ((u || "").indexOf("http://") === 0 || (u || "").indexOf("https://") === 0) {
+      return url.toString();
+    }
+    return url.pathname + url.search + url.hash;
   } catch (e) {
     return u;
   }
@@ -169,12 +244,24 @@ export default function CECPortal() {
   const [isLoading, setIsLoading] = useState(false);
   const [openMeth, setOpenMeth] = useState(false);
   const [openDown, setOpenDown] = useState(false);
+  const [selectedMode, setSelectedMode] = useState(readInitialMode);
 
   const activeUrl = useMemo(function () {
     if (!active) return null;
     const url = APPS[active];
-    return withEmbedded(url);
-  }, [active]);
+    return withAppParams(url, selectedMode, true);
+  }, [active, selectedMode]);
+
+  const selectedModeInfo = MODES.find(function (mode) { return mode.key === selectedMode; }) || MODES[0];
+  const visibleTiles = TILES.filter(function (tile) {
+    return selectedModeInfo.apps.indexOf(tile.key) !== -1;
+  });
+
+  function chooseMode(mode) {
+    var normalized = normalizeModeKey(mode);
+    setSelectedMode(normalized);
+    persistMode(normalized);
+  }
 
   const STYLES = "@keyframes loading { from { transform: translateX(-100%); } to { transform: translateX(300%); } }";
 
@@ -191,11 +278,15 @@ export default function CECPortal() {
             </div>
           </div>
           <nav className="hidden gap-6 text-sm font-medium text-zinc-700 md:flex">
+            <a className="hover:text-zinc-900" href="#modes">Modes</a>
             <a className="hover:text-zinc-900" href="#tiles">Apps</a>
             <a className="hover:text-zinc-900" href="#about">About</a>
             <a className="hover:text-zinc-900" href="#team">Team</a>
             <a className="hover:text-zinc-900" href="#support">Support</a>
           </nav>
+          <div className="hidden rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 lg:block">
+            Mode: {selectedModeInfo.label}
+          </div>
         </div>
       </header>
 
@@ -211,7 +302,7 @@ export default function CECPortal() {
                 Turn models into conversations: explore pathways, make trade-offs transparent, and co-create solutions that communities can support.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a href="#tiles" className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100">
+                <a href="#modes" className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100">
                   Get started <IconChevronRight className="h-4 w-4" />
                 </a>
                 <a
@@ -231,17 +322,59 @@ export default function CECPortal() {
         </div>
       </section>
 
+      {/* Modes */}
+      <section id="modes" className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-xl font-semibold">Choose a stakeholder mode</h3>
+            <p className="mt-1 text-sm text-zinc-600">
+              All modes currently use the same app access and data. We will specialize layers and tools in future updates.
+            </p>
+          </div>
+          <span className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800">
+            Selected: {selectedModeInfo.label}
+          </span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {MODES.map(function (mode) {
+            const activeMode = mode.key === selectedMode;
+            return (
+              <button
+                key={mode.key}
+                type="button"
+                onClick={function () { chooseMode(mode.key); }}
+                className={
+                  "rounded-2xl border bg-white p-4 text-left shadow-sm transition " +
+                  (activeMode
+                    ? "border-emerald-500 ring-2 ring-emerald-100"
+                    : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50")
+                }
+                aria-pressed={activeMode}
+              >
+                <span className="block text-sm font-semibold text-zinc-900">{mode.label}</span>
+                <span className="mt-1 block text-sm text-zinc-600">{mode.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Tiles */}
       <section id="tiles" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mb-6 flex items-end justify-between">
-          <h3 className="text-xl font-semibold">Choose a module</h3>
+          <div>
+            <h3 className="text-xl font-semibold">Choose a module</h3>
+            <p className="mt-1 text-sm text-zinc-600">Opening a module will pass mode={selectedMode} to the app.</p>
+          </div>
           
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {TILES.map(function (t) {
+          {visibleTiles.map(function (t) {
             const url = APPS[t.key];
             const valid = isValidHttpUrl(url);
+            const launchUrl = withAppParams(url, selectedMode, false);
             return (
               <article
                 key={t.key}
@@ -258,7 +391,7 @@ export default function CECPortal() {
                 </div>
                 <div className="mt-5 flex items-center gap-3">
                   <button
-                    onClick={function () { if (valid && url) { window.open(url, "_blank", "noopener,noreferrer"); } }}
+                    onClick={function () { if (valid && launchUrl) { window.open(launchUrl, "_blank", "noopener,noreferrer"); } }}
                     className={("inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium text-white ") + (valid ? "bg-zinc-900 hover:bg-zinc-800" : "bg-zinc-300 cursor-not-allowed")}
                     aria-label={"Open " + t.title}
                     disabled={!valid}
@@ -343,7 +476,7 @@ export default function CECPortal() {
       </section>
 
       {/* Dev: Config Tester (acts as test cases). Visible with ?dev=1) */}
-      <ConfigTester apps={APPS} />
+      <ConfigTester apps={APPS} selectedMode={selectedMode} />
 
       {/* In‑page App Viewer Overlay */}
       {active && (
@@ -352,7 +485,7 @@ export default function CECPortal() {
             className="relative h-[82vh] w-full max-w-6xl overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-2xl"
             role="dialog"
             aria-modal="true"
-            aria-label="Streamlit app viewer"
+            aria-label="Dash app viewer"
           >
             <button
               onClick={function() { setActive(null); }}
@@ -422,11 +555,11 @@ function useDevMode() {
   return url.searchParams.get("dev") === "1";
 }
 
-function ConfigTester({ apps }) {
+function ConfigTester({ apps, selectedMode }) {
   var dev = useDevMode();
   if (!dev) return null;
 
-  var tests = runConfigTests(apps);
+  var tests = runConfigTests(apps, selectedMode);
 
   return (
     <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
@@ -447,14 +580,14 @@ function ConfigTester({ apps }) {
           })}
         </ul>
         <p className="mt-3 text-xs text-emerald-900">
-          Tip: override config via query params, e.g.: <code>?explore=/explore&tradeoffs=/tradeoffs</code>
+          Tip: override Posit app URLs via query params, e.g.: <code>?explore=https://...&tradeoffs=https://...</code>
         </p>
       </div>
     </section>
   );
 }
 
-function runConfigTests(apps) {
+function runConfigTests(apps, selectedMode) {
   var res = [];
 
   Object.keys(apps).forEach(function (k) {
@@ -462,13 +595,19 @@ function runConfigTests(apps) {
     var valid = isValidHttpUrl(url);
     res.push({ name: k + " URL is valid", pass: valid, message: valid ? url : ("Invalid URL: " + String(url)) });
 
-    var embedded = withEmbedded(url);
+    var embedded = withAppParams(url, selectedMode, true);
     var hasEmbedded = /[?&]embedded=true($|&)/.test(embedded);
     res.push({ name: k + " appends embedded=true", pass: hasEmbedded, message: embedded });
+
+    var hasMode = new RegExp("[?&]mode=" + normalizeModeKey(selectedMode) + "($|&)").test(embedded);
+    res.push({ name: k + " appends selected mode", pass: hasMode, message: embedded });
   });
 
   var defaultsOk = Object.values(DEFAULT_APPS).every(function (v) { return typeof v === "string" && v.length > 0; });
   res.push({ name: "Defaults present", pass: defaultsOk, message: JSON.stringify(DEFAULT_APPS) });
+
+  var modesOk = MODES.length === 6 && MODES.every(function (mode) { return mode.apps.length === ALL_APP_KEYS.length; });
+  res.push({ name: "Six modes share current app access", pass: modesOk, message: MODES.map(function (m) { return m.key; }).join(", ") });
 
   return res;
 }
@@ -537,7 +676,7 @@ const DEPLOYMENT_NOTES = String.raw`
 ================================================================================
 Pattern A Deployment Assets (Paths on apps.communityenergycompass.org)
 --------------------------------------------------------------------------------
-This configuration runs three Streamlit services and an nginx reverse‑proxy that
+This configuration runs FastAPI and three Dash services with an nginx reverse-proxy that
 exposes:
   /explore
   /tradeoffs
@@ -566,51 +705,33 @@ services:
     networks: [cecnet]
 
   explore:
-    image: streamlit/streamlit:latest
+    image: python:3.11-slim
     container_name: cec-explore
     working_dir: /app
     volumes:
       - ./apps/explore:/app
     command: >-
-      streamlit run app.py
-      --server.port=8501
-      --server.address=0.0.0.0
-      --server.baseUrlPath=/explore
-      --server.enableCORS=false
-      --server.enableXsrfProtection=false
-      --browser.gatherUsageStats=false
+      python dash_explore.py
     networks: [cecnet]
 
   tradeoffs:
-    image: streamlit/streamlit:latest
+    image: python:3.11-slim
     container_name: cec-tradeoffs
     working_dir: /app
     volumes:
       - ./apps/tradeoffs:/app
     command: >-
-      streamlit run app.py
-      --server.port=8502
-      --server.address=0.0.0.0
-      --server.baseUrlPath=/tradeoffs
-      --server.enableCORS=false
-      --server.enableXsrfProtection=false
-      --browser.gatherUsageStats=false
+      python dash_tradeoffs.py
     networks: [cecnet]
 
   blender:
-    image: streamlit/streamlit:latest
+    image: python:3.11-slim
     container_name: cec-blender
     working_dir: /app
     volumes:
       - ./apps/blender:/app
     command: >-
-      streamlit run app.py
-      --server.port=8503
-      --server.address=0.0.0.0
-      --server.baseUrlPath=/blender
-      --server.enableCORS=false
-      --server.enableXsrfProtection=false
-      --browser.gatherUsageStats=false
+      python dash_blender.py
     networks: [cecnet]
 
 networks:
@@ -635,9 +756,9 @@ http {
 
   map $http_upgrade $connection_upgrade { default upgrade; '' close; }
 
-  upstream explore_up  { server explore:8501; }
-  upstream tradeoffs_up{ server tradeoffs:8502; }
-  upstream blend_up    { server blender:8503; }
+  upstream explore_up  { server explore:8050; }
+  upstream tradeoffs_up{ server tradeoffs:8051; }
+  upstream blend_up    { server blender:8052; }
 
   # Allow embedding from the apex portal
   map $http_host $csp_frame_ancestors {
@@ -699,14 +820,13 @@ http {
 }
 
 ----------------------------------------
-File: apps/**/streamlit.config.toml (optional)
+File: apps cutover routes
 ----------------------------------------
 [server]
-port = 8501  # change per service
-address = "0.0.0.0"
-baseUrlPath = "/explore"  # change per service
-enableCORS = false
-enableXsrfProtection = false
+FastAPI:       8000
+Dash Explore: 8050
+Dash Tradeoffs: 8051
+Dash Blender: 8052
 
 [browser]
 gatherUsageStats = false

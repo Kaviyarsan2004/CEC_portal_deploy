@@ -1,0 +1,43 @@
+# -------------------------------
+# Python
+# -------------------------------
+venv/
+.venv/
+venv311/
+__pycache__/
+venv_portal/
+*.pyc
+*.zip
+
+# Ignore datasets and large CSV files
+datasets/
+*.csv
+*.log
+*.tmp
+*.parquet
+
+
+# -------------------------------
+# Node
+# -------------------------------
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# -------------------------------
+# Build outputs
+# -------------------------------
+.vite/
+cec-portal/.vite/
+dist/
+
+# -------------------------------
+# OS and IDE files
+# -------------------------------
+.DS_Store
+Thumbs.db
+
+apps/archive/
+
+
+.posit
