@@ -6,20 +6,22 @@
     <title>Community Energy Compass — Portal</title>
     <!-- Tailwind via CDN (no local setup required) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" crossorigin src="/CEC_portal_deploy/assets/index-BHKGazbN.js"></script>
+    <script>
+      // Replace these three URLs with the published Posit Connect Cloud app URLs.
+      // The React portal appends ?mode=<selected-mode> when a user opens a module.
+      window.CEC_APPS = {
+        explore: "https://019edbd4-35e8-d0af-280e-d426239e23e3.share.connect.posit.cloud/",
+        tradeoffs: "https://019ed70c-a9e0-f6e0-ea12-54a543268262.share.connect.posit.cloud/?private_link_token=uqLlXU3zmEKZxKju2lrPGeBv7h1gNgg8o2fcEv4U4BAVK1sMEhfAZMVSEo1fd9rN/",
+        blender: "https://019ed707-e3af-4e8d-f8d0-e28dd8ccc4c9.share.connect.posit.cloud/?private_link_token=etdAqcKKR9IRJuMyE39FhnyOyBj1tihWupS2TOIYGPhyvf9vmwWiOphK7DjyFQ9V/",
+      };
+      window.CEC_HERO_IMG = "Conceptual_framework.png";
+    </script>
+    <script type="module" crossorigin src="/CEC_portal_deploy/assets/index-C_BvEg2t.js"></script>
   </head>
   <body class="bg-zinc-50">
     <div id="root"></div>
 
-    <script>
-      window.CEC_APPS = {
-        explore: "http://localhost:8501",
-        tradeoffs: "http://localhost:8502",
-        blender: "http://localhost:8503",
-      };
-      window.CEC_HERO_IMG = "./Conceptual_framework.png";
-    </script>
     
-
+
   </body>
 </html>
