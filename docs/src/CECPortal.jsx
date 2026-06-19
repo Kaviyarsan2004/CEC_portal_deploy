@@ -142,14 +142,14 @@ function normalizeModeKey(mode) {
 
 function readInitialMode() {
   try {
-    if (typeof window === "undefined") return DEFAULT_MODE;
+    if (typeof window === "undefined") return null;
     var url = new URL(window.location.href);
     var fromUrl = url.searchParams.get("mode");
     if (fromUrl) return normalizeModeKey(fromUrl);
     var fromStorage = window.localStorage && window.localStorage.getItem("cecMode");
-    return normalizeModeKey(fromStorage);
+    return fromStorage ? normalizeModeKey(fromStorage) : null;
   } catch (e) {
-    return DEFAULT_MODE;
+    return null;
   }
 }
 
@@ -245,6 +245,7 @@ export default function CECPortal() {
   const [openMeth, setOpenMeth] = useState(false);
   const [openDown, setOpenDown] = useState(false);
   const [selectedMode, setSelectedMode] = useState(readInitialMode);
+  const hasSelectedMode = Boolean(selectedMode);
 
   const activeUrl = useMemo(function () {
     if (!active) return null;
@@ -252,9 +253,9 @@ export default function CECPortal() {
     return withAppParams(url, selectedMode, true);
   }, [active, selectedMode]);
 
-  const selectedModeInfo = MODES.find(function (mode) { return mode.key === selectedMode; }) || MODES[0];
+  const selectedModeInfo = MODES.find(function (mode) { return mode.key === selectedMode; }) || null;
   const visibleTiles = TILES.filter(function (tile) {
-    return selectedModeInfo.apps.indexOf(tile.key) !== -1;
+    return selectedModeInfo && selectedModeInfo.apps.indexOf(tile.key) !== -1;
   });
 
   function chooseMode(mode) {
@@ -279,13 +280,13 @@ export default function CECPortal() {
           </div>
           <nav className="hidden gap-6 text-sm font-medium text-zinc-700 md:flex">
             <a className="hover:text-zinc-900" href="#modes">Modes</a>
-            <a className="hover:text-zinc-900" href="#tiles">Apps</a>
+            {hasSelectedMode && <a className="hover:text-zinc-900" href="#tiles">Apps</a>}
             <a className="hover:text-zinc-900" href="#about">About</a>
             <a className="hover:text-zinc-900" href="#team">Team</a>
             <a className="hover:text-zinc-900" href="#support">Support</a>
           </nav>
           <div className="hidden rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 lg:block">
-            Mode: {selectedModeInfo.label}
+            Mode: {selectedModeInfo ? selectedModeInfo.label : "Not selected"}
           </div>
         </div>
       </header>
@@ -331,8 +332,13 @@ export default function CECPortal() {
               All modes currently use the same app access and data. We will specialize layers and tools in future updates.
             </p>
           </div>
-          <span className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800">
-            Selected: {selectedModeInfo.label}
+          <span className={
+            "rounded-2xl border px-3 py-1.5 text-xs font-medium " +
+            (selectedModeInfo
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-zinc-200 bg-zinc-50 text-zinc-600")
+          }>
+            Selected: {selectedModeInfo ? selectedModeInfo.label : "None"}
           </span>
         </div>
 
@@ -361,50 +367,52 @@ export default function CECPortal() {
       </section>
 
       {/* Tiles */}
-      <section id="tiles" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-end justify-between">
-          <div>
-            <h3 className="text-xl font-semibold">Choose a module</h3>
-            <p className="mt-1 text-sm text-zinc-600">Opening a module will pass mode={selectedMode} to the app.</p>
+      {hasSelectedMode && (
+        <section id="tiles" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <h3 className="text-xl font-semibold">Choose a module</h3>
+              <p className="mt-1 text-sm text-zinc-600">Opening a module will pass mode={selectedMode} to the app.</p>
+            </div>
+            
           </div>
-          
-        </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {visibleTiles.map(function (t) {
-            const url = APPS[t.key];
-            const valid = isValidHttpUrl(url);
-            const launchUrl = withAppParams(url, selectedMode, false);
-            return (
-              <article
-                key={t.key}
-                className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"
-              >
-                <div>
-                  <div
-                    className={"mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br " + t.gradient + " text-white shadow"}
-                  >
-                    {t.icon}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visibleTiles.map(function (t) {
+              const url = APPS[t.key];
+              const valid = isValidHttpUrl(url);
+              const launchUrl = withAppParams(url, selectedMode, false);
+              return (
+                <article
+                  key={t.key}
+                  className="group relative flex flex-col justify-between rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm"
+                >
+                  <div>
+                    <div
+                      className={"mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br " + t.gradient + " text-white shadow"}
+                    >
+                      {t.icon}
+                    </div>
+                    <h4 className="text-base font-semibold tracking-tight">{t.title}</h4>
+                    <p className="mt-2 line-clamp-4 text-sm text-zinc-700">{t.subtitle}</p>
                   </div>
-                  <h4 className="text-base font-semibold tracking-tight">{t.title}</h4>
-                  <p className="mt-2 line-clamp-4 text-sm text-zinc-700">{t.subtitle}</p>
-                </div>
-                <div className="mt-5 flex items-center gap-3">
-                  <button
-                    onClick={function () { if (valid && launchUrl) { window.open(launchUrl, "_blank", "noopener,noreferrer"); } }}
-                    className={("inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium text-white ") + (valid ? "bg-zinc-900 hover:bg-zinc-800" : "bg-zinc-300 cursor-not-allowed")}
-                    aria-label={"Open " + t.title}
-                    disabled={!valid}
-                    title={valid ? "Open" : ("Invalid URL for " + t.title + ": " + url)}
-                  >
-                    Open <IconChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
+                  <div className="mt-5 flex items-center gap-3">
+                    <button
+                      onClick={function () { if (valid && launchUrl) { window.open(launchUrl, "_blank", "noopener,noreferrer"); } }}
+                      className={("inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium text-white ") + (valid ? "bg-zinc-900 hover:bg-zinc-800" : "bg-zinc-300 cursor-not-allowed")}
+                      aria-label={"Open " + t.title}
+                      disabled={!valid}
+                      title={valid ? "Open" : ("Invalid URL for " + t.title + ": " + url)}
+                    >
+                      Open <IconChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* About */}
       <section id="about" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
