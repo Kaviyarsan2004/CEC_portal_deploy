@@ -98,23 +98,18 @@ var ALL_APP_KEYS = ["explore", "tradeoffs", "blender"];
 var DEFAULT_MODE = "ccas";
 var MODES = [
   {
-    key: "ccas",
-    label: "CCAs",
-    description: "Community choice aggregation planning and portfolio review.",
-    apps: ALL_APP_KEYS,
-  },
-  {
     key: "state_authorities",
     label: "State Authorities",
     description: "Statewide policy, equity, and planning review.",
     apps: ALL_APP_KEYS,
   },
   {
-    key: "research",
-    label: "Research Mode",
-    description: "Full technical exploration for research and model review.",
+    key: "ccas",
+    label: "CCAs",
+    description: "Community choice aggregation planning and portfolio review.",
     apps: ALL_APP_KEYS,
   },
+
   {
     key: "idas",
     label: "IDAs",
@@ -135,6 +130,41 @@ var MODES = [
   },
 ];
 
+
+var DATASETS = [
+  { key: "p3", label: "2040 Net Zero", description: "Net-zero scenario" },
+  { key: "p3_hydrogen_80_38", label: "2040 Net Zero + Hydrogen $80.38", description: "Hydrogen price $80.38" },
+  { key: "p3_hi_hydrogen_nuclear_flex", label: "2040 + Hydrogen $80.38 + Flexible Nuclear", description: "Hydrogen price $80.38 with flexible nuclear" },
+];
+var DEFAULT_DATASET = "p3";
+
+function normalizeDatasetKey(dataset) {
+  var normalized = String(dataset || "").trim().toLowerCase().replace(/-/g, "");
+  return DATASETS.some(function (d) { return d.key === normalized; }) ? normalized : DEFAULT_DATASET;
+}
+
+function readInitialDataset() {
+  try {
+    if (typeof window === "undefined") return DEFAULT_DATASET;
+    var url = new URL(window.location.href);
+    var fromUrl = url.searchParams.get("dataset");
+    if (fromUrl) return normalizeDatasetKey(fromUrl);
+    var fromStorage = window.localStorage && window.localStorage.getItem("cecDataset");
+    return fromStorage ? normalizeDatasetKey(fromStorage) : DEFAULT_DATASET;
+  } catch (e) {
+    return DEFAULT_DATASET;
+  }
+}
+
+function persistDataset(dataset) {
+  try {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("cecDataset", dataset);
+    var url = new URL(window.location.href);
+    url.searchParams.set("dataset", dataset);
+    window.history.replaceState({}, "", url.toString());
+  } catch (e) {}
+}
 function normalizeModeKey(mode) {
   var normalized = String(mode || "").trim().toLowerCase().replace(/-/g, "_");
   return MODES.some(function (m) { return m.key === normalized; }) ? normalized : DEFAULT_MODE;
@@ -185,11 +215,14 @@ const HERO_IMG = (function(){
 })();
 
 // ---- UTILITIES --------------------------------------------------------------
-function withAppParams(u, mode, embedded) {
+function withAppParams(u, mode, dataset, embedded) {
   try {
     var base = typeof window !== "undefined" ? window.location.origin : "http://localhost";
     var url = new URL(u, base);
-    url.searchParams.set("mode", normalizeModeKey(mode));
+    var stakeholder = normalizeModeKey(mode);
+    url.searchParams.set("mode", stakeholder);
+    url.searchParams.set("stakeholder", stakeholder);
+    url.searchParams.set("dataset", normalizeDatasetKey(dataset));
     if (embedded) url.searchParams.set("embedded", "true");
     if ((u || "").indexOf("http://") === 0 || (u || "").indexOf("https://") === 0) {
       return url.toString();
@@ -244,19 +277,27 @@ export default function CECPortal() {
   const [isLoading, setIsLoading] = useState(false);
   const [openMeth, setOpenMeth] = useState(false);
   const [openDown, setOpenDown] = useState(false);
+  const [selectedDataset, setSelectedDataset] = useState(readInitialDataset);
   const [selectedMode, setSelectedMode] = useState(readInitialMode);
   const hasSelectedMode = Boolean(selectedMode);
 
   const activeUrl = useMemo(function () {
     if (!active) return null;
     const url = APPS[active];
-    return withAppParams(url, selectedMode, true);
-  }, [active, selectedMode]);
+    return withAppParams(url, selectedMode, selectedDataset, true);
+  }, [active, selectedMode, selectedDataset]);
 
+  const selectedDatasetInfo = DATASETS.find(function (dataset) { return dataset.key === selectedDataset; }) || DATASETS[0];
   const selectedModeInfo = MODES.find(function (mode) { return mode.key === selectedMode; }) || null;
   const visibleTiles = TILES.filter(function (tile) {
     return selectedModeInfo && selectedModeInfo.apps.indexOf(tile.key) !== -1;
   });
+
+  function chooseDataset(dataset) {
+    var normalized = normalizeDatasetKey(dataset);
+    setSelectedDataset(normalized);
+    persistDataset(normalized);
+  }
 
   function chooseMode(mode) {
     var normalized = normalizeModeKey(mode);
@@ -279,14 +320,15 @@ export default function CECPortal() {
             </div>
           </div>
           <nav className="hidden gap-6 text-sm font-medium text-zinc-700 md:flex">
-            <a className="hover:text-zinc-900" href="#modes">Modes</a>
+            <a className="hover:text-zinc-900" href="#datasets">Data</a>
+            <a className="hover:text-zinc-900" href="#modes">Stakeholders</a>
             {hasSelectedMode && <a className="hover:text-zinc-900" href="#tiles">Apps</a>}
             <a className="hover:text-zinc-900" href="#about">About</a>
             <a className="hover:text-zinc-900" href="#team">Team</a>
             <a className="hover:text-zinc-900" href="#support">Support</a>
           </nav>
           <div className="hidden rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-700 lg:block">
-            Mode: {selectedModeInfo ? selectedModeInfo.label : "Not selected"}
+            Data: {selectedDatasetInfo.label} | Stakeholder: {selectedModeInfo ? selectedModeInfo.label : "Not selected"}
           </div>
         </div>
       </header>
@@ -303,7 +345,7 @@ export default function CECPortal() {
                 Turn models into conversations: explore pathways, make trade-offs transparent, and co-create solutions that communities can support.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <a href="#modes" className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100">
+                <a href="#datasets" className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 px-4 py-2 text-sm font-medium hover:bg-zinc-100">
                   Get started <IconChevronRight className="h-4 w-4" />
                 </a>
                 <a
@@ -323,13 +365,50 @@ export default function CECPortal() {
         </div>
       </section>
 
+      {/* Data */}
+      <section id="datasets" className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-xl font-semibold">Choose data</h3>
+            <p className="mt-1 text-sm text-zinc-600">
+              Select a 2040 scenario first. The selected dataset is passed into every app you open.
+            </p>
+          </div>
+          <span className="rounded-2xl border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-800">
+            Selected: {selectedDatasetInfo.label}
+          </span>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {DATASETS.map(function (dataset) {
+            const activeDataset = dataset.key === selectedDataset;
+            return (
+              <button
+                key={dataset.key}
+                type="button"
+                onClick={function () { chooseDataset(dataset.key); }}
+                className={
+                  "rounded-2xl border bg-white p-4 text-left shadow-sm transition " +
+                  (activeDataset
+                    ? "border-sky-500 ring-2 ring-sky-100"
+                    : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50")
+                }
+                aria-pressed={activeDataset}
+              >
+                <span className="block text-sm font-semibold text-zinc-900">{dataset.label}</span>
+                <span className="mt-1 block text-sm text-zinc-600">{dataset.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
       {/* Modes */}
       <section id="modes" className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h3 className="text-xl font-semibold">Choose a stakeholder mode</h3>
+            <h3 className="text-xl font-semibold">Choose a stakeholder</h3>
             <p className="mt-1 text-sm text-zinc-600">
-              All modes currently use the same app access and data. We will specialize layers and tools in future updates.
+              Each app receives the selected dataset and stakeholder so app views can specialize what they show.
             </p>
           </div>
           <span className={
@@ -372,7 +451,7 @@ export default function CECPortal() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <h3 className="text-xl font-semibold">Choose a module</h3>
-              <p className="mt-1 text-sm text-zinc-600">Opening a module will pass mode={selectedMode} to the app.</p>
+              <p className="mt-1 text-sm text-zinc-600">Opening a module will pass dataset={selectedDataset} and stakeholder={selectedMode} to the app.</p>
             </div>
             
           </div>
@@ -381,7 +460,7 @@ export default function CECPortal() {
             {visibleTiles.map(function (t) {
               const url = APPS[t.key];
               const valid = isValidHttpUrl(url);
-              const launchUrl = withAppParams(url, selectedMode, false);
+              const launchUrl = withAppParams(url, selectedMode, selectedDataset, false);
               return (
                 <article
                   key={t.key}
@@ -484,7 +563,7 @@ export default function CECPortal() {
       </section>
 
       {/* Dev: Config Tester (acts as test cases). Visible with ?dev=1) */}
-      <ConfigTester apps={APPS} selectedMode={selectedMode} />
+      <ConfigTester apps={APPS} selectedMode={selectedMode} selectedDataset={selectedDataset} />
 
       {/* In‑page App Viewer Overlay */}
       {active && (
@@ -563,11 +642,11 @@ function useDevMode() {
   return url.searchParams.get("dev") === "1";
 }
 
-function ConfigTester({ apps, selectedMode }) {
+function ConfigTester({ apps, selectedMode, selectedDataset }) {
   var dev = useDevMode();
   if (!dev) return null;
 
-  var tests = runConfigTests(apps, selectedMode);
+  var tests = runConfigTests(apps, selectedMode, selectedDataset);
 
   return (
     <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
@@ -588,14 +667,14 @@ function ConfigTester({ apps, selectedMode }) {
           })}
         </ul>
         <p className="mt-3 text-xs text-emerald-900">
-          Tip: override Posit app URLs via query params, e.g.: <code>?explore=https://...&tradeoffs=https://...</code>
+          Tip: override dashboard URLs via query params, e.g.: <code>?explore=http://127.0.0.1:8050/&tradeoffs=http://127.0.0.1:8051/</code>
         </p>
       </div>
     </section>
   );
 }
 
-function runConfigTests(apps, selectedMode) {
+function runConfigTests(apps, selectedMode, selectedDataset) {
   var res = [];
 
   Object.keys(apps).forEach(function (k) {
@@ -603,7 +682,7 @@ function runConfigTests(apps, selectedMode) {
     var valid = isValidHttpUrl(url);
     res.push({ name: k + " URL is valid", pass: valid, message: valid ? url : ("Invalid URL: " + String(url)) });
 
-    var embedded = withAppParams(url, selectedMode, true);
+    var embedded = withAppParams(url, selectedMode, selectedDataset, true);
     var hasEmbedded = /[?&]embedded=true($|&)/.test(embedded);
     res.push({ name: k + " appends embedded=true", pass: hasEmbedded, message: embedded });
 
@@ -614,8 +693,12 @@ function runConfigTests(apps, selectedMode) {
   var defaultsOk = Object.values(DEFAULT_APPS).every(function (v) { return typeof v === "string" && v.length > 0; });
   res.push({ name: "Defaults present", pass: defaultsOk, message: JSON.stringify(DEFAULT_APPS) });
 
-  var modesOk = MODES.length === 6 && MODES.every(function (mode) { return mode.apps.length === ALL_APP_KEYS.length; });
-  res.push({ name: "Six modes share current app access", pass: modesOk, message: MODES.map(function (m) { return m.key; }).join(", ") });
+  var modesOk = MODES.length === 5 && MODES.every(function (mode) { return mode.apps.length === ALL_APP_KEYS.length; });
+  res.push({ name: "Five stakeholders share current app access", pass: modesOk, message: MODES.map(function (m) { return m.key; }).join(", ") });
+
+  var datasetUrl = withAppParams(apps.explore, selectedMode, selectedDataset, true);
+  var hasDataset = new RegExp("[?&]dataset=" + normalizeDatasetKey(selectedDataset) + "($|&)").test(datasetUrl);
+  res.push({ name: "Appends selected dataset", pass: hasDataset, message: datasetUrl });
 
   return res;
 }
@@ -849,3 +932,7 @@ Smoke test checklist (acts as manual tests)
 5) Open:  http://apps.communityenergycompass.org/blender?embedded=true   → Blender OK
 6) Portal (apex): https://communityenergycompass.org?dev=1 → tests PASS
 `;
+
+
+
+

@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       // Replace these three URLs with the published Posit Connect Cloud app URLs.
-      // The React portal appends ?mode=<selected-mode> when a user opens a module.
+      // The React portal appends ?mode=<selected-mode>&stakeholder=<selected-stakeholder>&dataset=<selected-dataset> when a user opens a module.
       window.CEC_APPS = {
         explore: "https://019edbd4-35e8-d0af-280e-d426239e23e3.share.connect.posit.cloud/",
         tradeoffs: "https://019ed70c-a9e0-f6e0-ea12-54a543268262.share.connect.posit.cloud/",
@@ -16,13 +16,10 @@
       };
       window.CEC_HERO_IMG = "Conceptual_framework.png";
     </script>
-    <script type="module" src="./assets/index-C_BvEg2t.js"></script>
   </head>
   <body class="bg-zinc-50">
     <div id="root"></div>
-
-    
-
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
 
