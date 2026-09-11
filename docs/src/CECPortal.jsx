@@ -139,9 +139,9 @@ var MODES = [
 
 
 var DATASETS = [
-  { key: "p3", label: "2040 Net Zero", description: "Net-zero scenario" },
-  { key: "p3_hydrogen_80_38", label: "2040 Net Zero + Hydrogen $80.38", description: "Hydrogen price $80.38" },
-  { key: "p3_hi_hydrogen_nuclear_flex", label: "2040 + Hydrogen $80.38 + Flexible Nuclear", description: "Hydrogen price $80.38 with flexible nuclear" },
+  { key: "p3", label: "Current Policy with Zero Emissions RNG", description: "Current policy with zero-emissions renewable natural gas." },
+  { key: "p3_hydrogen_80_38", label: "Current Policy", description: "Current-policy scenario." },
+  { key: "p3_hi_hydrogen_nuclear_flex", label: "Current Policy Flexible Nuclear", description: "Current-policy scenario with flexible nuclear." },
 ];
 var DEFAULT_DATASET = "p3";
 
@@ -378,9 +378,9 @@ export default function CECPortal() {
       <section id="datasets" className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h3 className="text-xl font-semibold">Choose data</h3>
+            <h3 className="text-xl font-semibold">Explore 2040 zero-emissions scenarios</h3>
             <p className="mt-1 text-sm text-zinc-600">
-              Select a 2040 scenario first. The selected dataset is passed into every app you open.
+              Compare 2040 zero-emissions scenarios. Your selected scenario is passed into every app you open.
             </p>
           </div>
           <span className="rounded-2xl border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-800">
