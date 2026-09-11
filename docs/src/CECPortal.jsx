@@ -95,8 +95,15 @@ function buildAppConfig() {
 var APPS = buildAppConfig();
 
 var ALL_APP_KEYS = ["explore", "tradeoffs", "blender"];
+var GENERAL_EXPLORE_URL = "https://01a08c6a-9856-7a73-36b5-d62222fefeae.share.connect.posit.cloud/";
 var DEFAULT_MODE = "ccas";
 var MODES = [
+  {
+    key: "general",
+    label: "General",
+    description: "General public exploration of energy-transition solutions.",
+    apps: ["explore"],
+  },
   {
     key: "state_authorities",
     label: "State Authorities",
@@ -283,7 +290,9 @@ export default function CECPortal() {
 
   const activeUrl = useMemo(function () {
     if (!active) return null;
-    const url = APPS[active];
+    const url = selectedMode === "general" && active === "explore"
+      ? GENERAL_EXPLORE_URL
+      : APPS[active];
     return withAppParams(url, selectedMode, selectedDataset, true);
   }, [active, selectedMode, selectedDataset]);
 
@@ -458,7 +467,9 @@ export default function CECPortal() {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {visibleTiles.map(function (t) {
-              const url = APPS[t.key];
+              const url = selectedMode === "general" && t.key === "explore"
+                ? GENERAL_EXPLORE_URL
+                : APPS[t.key];
               const valid = isValidHttpUrl(url);
               const launchUrl = withAppParams(url, selectedMode, selectedDataset, false);
               return (
@@ -693,8 +704,8 @@ function runConfigTests(apps, selectedMode, selectedDataset) {
   var defaultsOk = Object.values(DEFAULT_APPS).every(function (v) { return typeof v === "string" && v.length > 0; });
   res.push({ name: "Defaults present", pass: defaultsOk, message: JSON.stringify(DEFAULT_APPS) });
 
-  var modesOk = MODES.length === 5 && MODES.every(function (mode) { return mode.apps.length === ALL_APP_KEYS.length; });
-  res.push({ name: "Five stakeholders share current app access", pass: modesOk, message: MODES.map(function (m) { return m.key; }).join(", ") });
+  var modesOk = MODES.length === 6 && MODES[0].key === "general" && MODES[0].apps.length === 1 && MODES[0].apps[0] === "explore";
+  res.push({ name: "General stakeholder is first and has Explore access", pass: modesOk, message: MODES.map(function (m) { return m.key; }).join(", ") });
 
   var datasetUrl = withAppParams(apps.explore, selectedMode, selectedDataset, true);
   var hasDataset = new RegExp("[?&]dataset=" + normalizeDatasetKey(selectedDataset) + "($|&)").test(datasetUrl);
