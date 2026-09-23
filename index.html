@@ -44,24 +44,26 @@
             #cec-gsi-gate .cec-gsi-card { max-width: none; }
           }
 
-          #cec-gsi-profile { position: fixed; top: 14px; right: 14px; z-index: 9998; display: none; }
+          #cec-gsi-profile { position: fixed; top: 32px; right: 10px; z-index: 9998; display: none; }
+          #cec-gsi-profile.cec-gsi-in-header { position: relative; top: auto; right: auto; margin-left: 20px; flex-shrink: 0; }
+          #root header > div { justify-content: flex-start !important; }
+          #root header > div > div:first-child { margin-right: auto; }
           #cec-gsi-profile-btn {
-            display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 9999px;
+            display: flex; align-items: center; padding: 0; border-radius: 9999px;
             border: 1px solid #e4e4e7; background: #ffffffec; backdrop-filter: blur(6px);
             cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             transition: box-shadow .15s ease, border-color .15s ease;
           }
           #cec-gsi-profile-btn:hover { border-color: #d4d4d8; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
           #cec-gsi-profile-btn img, #cec-gsi-profile-btn .cec-gsi-avatar-fallback {
-            width: 26px; height: 26px; border-radius: 9999px; object-fit: cover; flex-shrink: 0;
+            width: 34px; height: 34px; border-radius: 9999px; object-fit: cover; flex-shrink: 0;
           }
           #cec-gsi-profile-btn .cec-gsi-avatar-fallback {
             display: flex; align-items: center; justify-content: center;
             background: linear-gradient(135deg, #10b981, #0ea5e9); color: #fff;
-            font-size: 11px; font-weight: 600;
+            font-size: 13px; font-weight: 600;
           }
-          #cec-gsi-profile-btn .cec-gsi-first-name { font-size: 13px; font-weight: 500; color: #27272a; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-          #cec-gsi-profile-btn svg { color: #a1a1aa; flex-shrink: 0; }
+          #cec-gsi-profile-btn .cec-gsi-first-name, #cec-gsi-profile-btn svg { display: none; }
           #cec-gsi-menu {
             display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px;
             background: #fff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 6px;
@@ -123,7 +125,7 @@
             var CLIENT_ID = "913791902819-3r4070h5r6i664lg09ih5qfjb7teqv93.apps.googleusercontent.com";
             // Google Apps Script Web App URL that appends sign-ins to a Google Sheet.
             // See setup instructions provided separately. Leave blank to disable logging.
-            var LOG_ENDPOINT = "";
+            var LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbz373-cddsCC46vU2V2-LvudocZksdj6XnXOvh16CyuwZIW-MitGFc62LzmCu47ClNc/exec";
 
             function logSignIn(user) {
               if (!LOG_ENDPOINT) return;
@@ -244,6 +246,17 @@
                 window.google.accounts.id.prompt();
               }
             }
+
+            function attachProfileToHeader() {
+              var profile = document.getElementById("cec-gsi-profile");
+              var row = document.querySelector("#root header > div");
+              if (!row || !profile || profile.parentNode === row) return;
+              row.appendChild(profile);
+              profile.classList.add("cec-gsi-in-header");
+            }
+            new MutationObserver(attachProfileToHeader).observe(
+              document.getElementById("root"), { childList: true, subtree: true }
+            );
 
             document.getElementById("root").style.display = "none";
             init();
