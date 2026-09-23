@@ -1,3 +1,252 @@
-<!doctype html><html lang="en">  <head>    <meta charset="UTF-8" />    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>Community Energy Compass � Portal</title>    <!-- Tailwind via CDN (no local setup required) -->    <script src="https://cdn.tailwindcss.com"></script>    <script>      // Replace these three URLs with the published Posit Connect Cloud app URLs.      // The React portal appends ?mode=<selected-mode>&stakeholder=<selected-stakeholder>&dataset=<selected-dataset> when a user opens a module.      window.CEC_APPS = {        explore: "https://019edbd4-35e8-d0af-280e-d426239e23e3.share.connect.posit.cloud/",        tradeoffs: "https://019ed70c-a9e0-f6e0-ea12-54a543268262.share.connect.posit.cloud/",        blender: "https://019ed707-e3af-4e8d-f8d0-e28dd8ccc4c9.share.connect.posit.cloud/",      };    </script>        
+<!doctype html><html lang="en">  <head>    <meta charset="UTF-8" />    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>Community Energy Compass � Portal</title>    <!-- Tailwind via CDN (no local setup required) -->    <script src="https://cdn.tailwindcss.com"></script>    <script>      // Replace these three URLs with the published Posit Connect Cloud app URLs.      // The React portal appends ?mode=<selected-mode>&stakeholder=<selected-stakeholder>&dataset=<selected-dataset> when a user opens a module.      window.CEC_APPS = {        explore: "https://019edbd4-35e8-d0af-280e-d426239e23e3.share.connect.posit.cloud/",        tradeoffs: "https://019ed70c-a9e0-f6e0-ea12-54a543268262.share.connect.posit.cloud/",        blender: "https://019ed707-e3af-4e8d-f8d0-e28dd8ccc4c9.share.connect.posit.cloud/",      };    </script>
         <script type="module" crossorigin src="/assets/index-BoGakBhx.js"></script>
-      </head>  <body class="bg-zinc-50">    <div id="root"></div>  </body></html>
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <style>
+          #cec-gsi-gate {
+            position: fixed; inset: 0; z-index: 9999; display: flex;
+            background: #fafafa;
+          }
+          #cec-gsi-gate .cec-gsi-brand {
+            position: relative; flex: 1.6; display: flex; flex-direction: column; justify-content: center;
+            padding: 56px 64px; color: #18181b; overflow: hidden; background: #fafafa;
+          }
+          #cec-gsi-gate .cec-gsi-brand-inner { position: relative; max-width: 620px; }
+          #cec-gsi-gate .cec-gsi-wordmark {
+            display: inline-flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600;
+            letter-spacing: 0.02em; color: #52525b; margin-bottom: 28px;
+          }
+          #cec-gsi-gate .cec-gsi-wordmark img { width: 24px; height: 24px; border-radius: 7px; }
+          #cec-gsi-gate .cec-gsi-brand h1 {
+            font-size: 34px; line-height: 1.18; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 16px;
+          }
+          #cec-gsi-gate .cec-gsi-brand p {
+            font-size: 15px; line-height: 1.6; color: #52525b; max-width: 460px; margin-bottom: 28px;
+          }
+          #cec-gsi-gate .cec-gsi-diagram {
+            width: 100%; max-width: 620px; border-radius: 1.25rem; border: 1px solid #e4e4e7;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06); display: block;
+          }
+          #cec-gsi-gate .cec-gsi-panel {
+            flex: 0.85; display: flex; align-items: center; justify-content: center; padding: 40px;
+            border-left: 1px solid #ececee; background: #fff;
+          }
+          #cec-gsi-gate .cec-gsi-card { width: 100%; max-width: 340px; text-align: left; }
+          #cec-gsi-gate .cec-gsi-card h2 { font-size: 20px; font-weight: 600; color: #18181b; margin-bottom: 6px; letter-spacing: -0.01em; }
+          #cec-gsi-gate .cec-gsi-card p { font-size: 13.5px; color: #71717a; margin-bottom: 28px; line-height: 1.5; }
+          #cec-gsi-gate #cec-gsi-button { display: flex; justify-content: flex-start; }
+          #cec-gsi-gate .cec-gsi-footer { margin-top: 20px; font-size: 11.5px; color: #a1a1aa; line-height: 1.5; }
+          @media (max-width: 980px) {
+            #cec-gsi-gate { flex-direction: column; overflow-y: auto; }
+            #cec-gsi-gate .cec-gsi-brand { flex: none; padding: 40px 28px; }
+            #cec-gsi-gate .cec-gsi-brand h1 { font-size: 24px; }
+            #cec-gsi-gate .cec-gsi-diagram { display: none; }
+            #cec-gsi-gate .cec-gsi-panel { flex: none; padding: 32px 28px; }
+            #cec-gsi-gate .cec-gsi-card { max-width: none; }
+          }
+
+          #cec-gsi-profile { position: fixed; top: 14px; right: 14px; z-index: 9998; display: none; }
+          #cec-gsi-profile-btn {
+            display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 9999px;
+            border: 1px solid #e4e4e7; background: #ffffffec; backdrop-filter: blur(6px);
+            cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: box-shadow .15s ease, border-color .15s ease;
+          }
+          #cec-gsi-profile-btn:hover { border-color: #d4d4d8; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+          #cec-gsi-profile-btn img, #cec-gsi-profile-btn .cec-gsi-avatar-fallback {
+            width: 26px; height: 26px; border-radius: 9999px; object-fit: cover; flex-shrink: 0;
+          }
+          #cec-gsi-profile-btn .cec-gsi-avatar-fallback {
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #10b981, #0ea5e9); color: #fff;
+            font-size: 11px; font-weight: 600;
+          }
+          #cec-gsi-profile-btn .cec-gsi-first-name { font-size: 13px; font-weight: 500; color: #27272a; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          #cec-gsi-profile-btn svg { color: #a1a1aa; flex-shrink: 0; }
+          #cec-gsi-menu {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0; min-width: 220px;
+            background: #fff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+          }
+          #cec-gsi-menu.cec-gsi-open { display: block; }
+          #cec-gsi-menu .cec-gsi-menu-header { padding: 8px 10px 10px; border-bottom: 1px solid #f4f4f5; margin-bottom: 6px; }
+          #cec-gsi-menu .cec-gsi-menu-name { font-size: 13px; font-weight: 600; color: #18181b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          #cec-gsi-menu .cec-gsi-menu-email { font-size: 12px; color: #a1a1aa; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          #cec-gsi-menu button {
+            width: 100%; text-align: left; font-size: 13px; font-weight: 500; color: #3f3f46;
+            padding: 8px 10px; border-radius: 8px; border: none; background: none; cursor: pointer;
+          }
+          #cec-gsi-menu button:hover { background: #f4f4f5; }
+        </style>
+      </head>  <body class="bg-zinc-50">
+        <div id="cec-gsi-gate">
+          <div class="cec-gsi-brand">
+            <div class="cec-gsi-brand-inner">
+              <div class="cec-gsi-wordmark">
+                <img src="/assets/CEC_v1-Bq894mxw.png" alt="" />
+                Community Energy Compass
+              </div>
+              <h1>Explore energy-transition trade-offs &mdash; fast, transparent, stakeholder-ready</h1>
+              <p>Turn models into conversations: explore pathways, make trade-offs transparent, and co-create solutions that communities can support.</p>
+              <img class="cec-gsi-diagram" src="/Conceptual_framework.png" alt="Community Energy Compass conceptual framework" />
+            </div>
+          </div>
+          <div class="cec-gsi-panel">
+            <div class="cec-gsi-card">
+              <h2>Sign in to continue</h2>
+              <p>Use your Google account to access the portal.</p>
+              <div id="cec-gsi-button"></div>
+              <div class="cec-gsi-footer">You'll stay signed in for this browser session. Access is limited to authorized accounts.</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="cec-gsi-profile">
+          <button id="cec-gsi-profile-btn">
+            <img id="cec-gsi-avatar-img" src="" alt="" referrerpolicy="no-referrer" style="display:none" />
+            <span id="cec-gsi-avatar-fallback" class="cec-gsi-avatar-fallback" style="display:none"></span>
+            <span id="cec-gsi-first-name" class="cec-gsi-first-name"></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div id="cec-gsi-menu">
+            <div class="cec-gsi-menu-header">
+              <div id="cec-gsi-menu-name" class="cec-gsi-menu-name"></div>
+              <div id="cec-gsi-menu-email" class="cec-gsi-menu-email"></div>
+            </div>
+            <button id="cec-gsi-signout">Sign out</button>
+          </div>
+        </div>
+
+        <div id="root"></div>
+        <script>
+          (function () {
+            var STORAGE_KEY = "cec_gsi_user";
+            var CLIENT_ID = "913791902819-3r4070h5r6i664lg09ih5qfjb7teqv93.apps.googleusercontent.com";
+            // Google Apps Script Web App URL that appends sign-ins to a Google Sheet.
+            // See setup instructions provided separately. Leave blank to disable logging.
+            var LOG_ENDPOINT = "";
+
+            function logSignIn(user) {
+              if (!LOG_ENDPOINT) return;
+              try {
+                fetch(LOG_ENDPOINT, {
+                  method: "POST",
+                  mode: "no-cors",
+                  headers: { "Content-Type": "text/plain" },
+                  body: JSON.stringify({
+                    name: user.name,
+                    email: user.email,
+                    picture: user.picture,
+                    time: new Date().toISOString(),
+                  }),
+                });
+              } catch (e) {}
+            }
+
+            function decodeJwt(token) {
+              var base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+              var json = decodeURIComponent(
+                atob(base64)
+                  .split("")
+                  .map(function (c) { return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2); })
+                  .join("")
+              );
+              return JSON.parse(json);
+            }
+
+            function initials(name, email) {
+              var source = (name || email || "").trim();
+              if (!source) return "?";
+              var parts = source.split(/\s+/);
+              if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+              return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            }
+
+            function showApp(user) {
+              document.getElementById("cec-gsi-gate").style.display = "none";
+              document.getElementById("root").style.display = "";
+              document.getElementById("cec-gsi-profile").style.display = "block";
+
+              var firstName = (user.given_name || (user.name || "").split(" ")[0] || user.email || "Account");
+              document.getElementById("cec-gsi-first-name").textContent = firstName;
+              document.getElementById("cec-gsi-menu-name").textContent = user.name || firstName;
+              document.getElementById("cec-gsi-menu-email").textContent = user.email || "";
+
+              var img = document.getElementById("cec-gsi-avatar-img");
+              var fallback = document.getElementById("cec-gsi-avatar-fallback");
+              if (user.picture) {
+                img.src = user.picture;
+                img.style.display = "block";
+                fallback.style.display = "none";
+                img.onerror = function () {
+                  img.style.display = "none";
+                  fallback.style.display = "flex";
+                };
+              } else {
+                img.style.display = "none";
+                fallback.style.display = "flex";
+              }
+              fallback.textContent = initials(user.name, user.email);
+            }
+
+            function showGate() {
+              document.getElementById("root").style.display = "none";
+              document.getElementById("cec-gsi-gate").style.display = "flex";
+              document.getElementById("cec-gsi-profile").style.display = "none";
+              document.getElementById("cec-gsi-menu").classList.remove("cec-gsi-open");
+            }
+
+            function handleCredentialResponse(response) {
+              var user = decodeJwt(response.credential);
+              window.CEC_USER = user;
+              try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(user)); } catch (e) {}
+              logSignIn(user);
+              showApp(user);
+            }
+
+            document.getElementById("cec-gsi-profile-btn").addEventListener("click", function (e) {
+              e.stopPropagation();
+              document.getElementById("cec-gsi-menu").classList.toggle("cec-gsi-open");
+            });
+            document.addEventListener("click", function () {
+              document.getElementById("cec-gsi-menu").classList.remove("cec-gsi-open");
+            });
+
+            document.getElementById("cec-gsi-signout").addEventListener("click", function () {
+              try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
+              window.CEC_USER = null;
+              if (window.google && window.google.accounts) {
+                window.google.accounts.id.disableAutoSelect();
+              }
+              showGate();
+            });
+
+            function init() {
+              if (!window.google || !window.google.accounts) {
+                setTimeout(init, 50);
+                return;
+              }
+              window.google.accounts.id.initialize({
+                client_id: CLIENT_ID,
+                callback: handleCredentialResponse,
+              });
+              window.google.accounts.id.renderButton(
+                document.getElementById("cec-gsi-button"),
+                { theme: "outline", size: "large", text: "signin_with", shape: "pill", width: 280 }
+              );
+
+              var stored = null;
+              try { stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null"); } catch (e) {}
+              if (stored) {
+                window.CEC_USER = stored;
+                showApp(stored);
+              } else {
+                showGate();
+                window.google.accounts.id.prompt();
+              }
+            }
+
+            document.getElementById("root").style.display = "none";
+            init();
+          })();
+        </script>
+      </body></html>
