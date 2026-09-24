@@ -1,11 +1,16 @@
 <!doctype html><html lang="en">  <head>    <meta charset="UTF-8" />    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>Community Energy Compass &mdash; Portal</title>    <!-- Tailwind styles, prebuilt from the classes used by this page (no external script needed) -->    <link rel="stylesheet" href="/assets/tailwind.css" />    <script>      // Replace these three URLs with the published Posit Connect Cloud app URLs.      // The React portal appends ?mode=<selected-mode>&stakeholder=<selected-stakeholder>&dataset=<selected-dataset> when a user opens a module.      window.CEC_APPS = {        explore: "https://019edbd4-35e8-d0af-280e-d426239e23e3.share.connect.posit.cloud/",        tradeoffs: "https://019ed70c-a9e0-f6e0-ea12-54a543268262.share.connect.posit.cloud/",        blender: "https://019ed707-e3af-4e8d-f8d0-e28dd8ccc4c9.share.connect.posit.cloud/",      };
       // Team shown in the portal's Team section (photos live in /assets/team/).
       window.CEC_TEAM = [
-        { name: "Neha Patankar", role: "Team lead", linkedin: "https://www.linkedin.com/in/nehapatankar/", photo: "/assets/team/drPatankar.jpeg" },
-        { name: "Kaviyarasan Ganesamoorthy", role: "Student member", linkedin: "https://www.linkedin.com/in/kaviyarasan-ganesamoorthy/", photo: "/assets/team/kavi.jpeg" },
-        { name: "Xin Wang", role: "Student member", linkedin: "https://www.linkedin.com/in/vision-wang/", photo: "/assets/team/vision.jpeg" },
-        { name: "Mike Lau", role: "Student member", linkedin: "https://www.linkedin.com/in/michaelmlau/", photo: "/assets/team/mikelau.jpeg" },
-        { name: "Dilip Kumar", role: "Student member", linkedin: "https://www.linkedin.com/in/dilipkumartc/", photo: "/assets/team/dilip.jpeg" }
+        { name: "Neha Patankar", role: "Team lead", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/nehapatankar/", photo: "/assets/team/drPatankar.jpeg" },
+        { name: "Vivek Srikrishnan", role: "Team lead", org: "Cornell University", linkedin: "https://www.linkedin.com/in/vivek-srikrishnan-9052199a/", photo: "/assets/team/vivek.jpeg" },
+        { name: "C. Lindsay Anderson", role: "Team lead", org: "Cornell University", linkedin: "https://www.linkedin.com/in/c-lindsay-anderson-88977712/", photo: "/assets/team/lindsa.jpeg" },
+        { name: "Kaviyarasan Ganesamoorthy", role: "Student member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/kaviyarasan-ganesamoorthy/", photo: "/assets/team/kavi.jpeg" },
+        { name: "Manar Jaradat", role: "Team member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/manar-jaradat-5342a6a3/", photo: "/assets/team/manar.jpeg" },
+        { name: "Xin Wang", role: "Student member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/vision-wang/", photo: "/assets/team/vision.jpeg" },
+        { name: "Mike Lau", role: "Student member", org: "Princeton University", linkedin: "https://www.linkedin.com/in/michaelmlau/", photo: "/assets/team/mikelau.jpeg" },
+        { name: "Luan Saraiva De Brito", role: "Team member", org: "Cornell University", linkedin: "https://www.linkedin.com/in/luan-brito89/", photo: "/assets/team/luan.jpeg" },
+        { name: "Shane Menezes", role: "Team member", linkedin: "https://www.linkedin.com/in/shane-menezes-a843b77/", photo: "/assets/team/shane.jpeg" },
+        { name: "Dilip Kumar", role: "Student member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/dilipkumartc/", photo: "/assets/team/dilip.jpeg" }
       ];    </script>
         <script type="module" crossorigin src="/assets/index-BoGakBhx.js"></script>
         <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -365,11 +370,16 @@
 
             // Team photos: /assets/team/<photo>.(jpg|jpeg|png|webp). Initials show until a photo is found.
             var TEAM = [
-              { name: "Neha Patankar", role: "Team lead", linkedin: "https://www.linkedin.com/in/nehapatankar/", photo: "drPatankar" },
-              { name: "Kaviyarasan Ganesamoorthy", role: "Student member", linkedin: "https://www.linkedin.com/in/kaviyarasan-ganesamoorthy/", photo: "kavi" },
-              { name: "Xin Wang", role: "Student member", linkedin: "https://www.linkedin.com/in/vision-wang/", photo: "vision" },
-              { name: "Mike Lau", role: "Student member", linkedin: "https://www.linkedin.com/in/michaelmlau/", photo: "mikelau" },
-              { name: "Dilip Kumar", role: "Student member", linkedin: "https://www.linkedin.com/in/dilipkumartc/", photo: "dilip" }
+              { name: "Neha Patankar", role: "Team lead", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/nehapatankar/", photo: "drPatankar" },
+              { name: "Vivek Srikrishnan", role: "Team lead", org: "Cornell University", linkedin: "https://www.linkedin.com/in/vivek-srikrishnan-9052199a/", photo: "vivek" },
+              { name: "C. Lindsay Anderson", role: "Team lead", org: "Cornell University", linkedin: "https://www.linkedin.com/in/c-lindsay-anderson-88977712/", photo: "lindsa" },
+              { name: "Kaviyarasan Ganesamoorthy", role: "Student member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/kaviyarasan-ganesamoorthy/", photo: "kavi" },
+              { name: "Manar Jaradat", role: "Team member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/manar-jaradat-5342a6a3/", photo: "manar" },
+              { name: "Xin Wang", role: "Student member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/vision-wang/", photo: "vision" },
+              { name: "Mike Lau", role: "Student member", org: "Princeton University", linkedin: "https://www.linkedin.com/in/michaelmlau/", photo: "mikelau" },
+              { name: "Luan Saraiva De Brito", role: "Team member", org: "Cornell University", linkedin: "https://www.linkedin.com/in/luan-brito89/", photo: "luan" },
+              { name: "Shane Menezes", role: "Team member", linkedin: "https://www.linkedin.com/in/shane-menezes-a843b77/", photo: "shane" },
+              { name: "Dilip Kumar", role: "Student member", org: "Binghamton University", linkedin: "https://www.linkedin.com/in/dilipkumartc/", photo: "dilip" }
             ];
             var PHOTO_EXTS = ["jpg", "jpeg", "png", "webp"];
 
@@ -452,10 +462,17 @@
                 var role = document.createElement("div");
                 role.className = "cg-prole";
                 role.textContent = m.role;
+                var org = null;
+                if (m.org) {
+                  org = document.createElement("div");
+                  org.className = "cg-prole";
+                  org.textContent = m.org;
+                }
 
                 a.appendChild(photo);
                 a.appendChild(name);
                 a.appendChild(role);
+                if (org) a.appendChild(org);
                 grid.appendChild(a);
               });
             }
